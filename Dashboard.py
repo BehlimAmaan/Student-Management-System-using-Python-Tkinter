@@ -31,8 +31,9 @@ def slider():
 #Database connection 
 def db_connect():
     def connect():
+        global mycursor,conn
         try:
-            conn = pymysql.connect(host=hostentry.get(), user=userentry.get(), password=passentry.get())
+            conn = pymysql.connect(host='localhost', user='root', password='Ammar@1240')
             mycursor=conn.cursor()
             messagebox.showinfo('Succes','Database connection is successful',parent=dbroot)
         except:
@@ -46,8 +47,9 @@ def db_connect():
             query = '''
             CREATE TABLE IF NOT EXISTS student (
                 Id INT NOT NULL PRIMARY KEY,
-                Name VARCHAR(30) NOT NULL,
+                Name VARCHAR(100) NOT NULL,
                 Mobile VARCHAR(10),
+                Mail varchar(100),
                 Address VARCHAR(100),
                 Gender VARCHAR(10),
                 DOB VARCHAR(20) NOT NULL,
@@ -59,6 +61,7 @@ def db_connect():
         except:
             query ='use student_management_system'
             mycursor.execute(query)
+            query =''
         AddButton.config(state=NORMAL)
         SerButton.config(state=NORMAL)
         delButton.config(state=NORMAL)
@@ -93,7 +96,164 @@ def db_connect():
     #Connect Button
     conn = ttk.Button(dbroot,text='Connect',command=connect,width=20,cursor='hand2')
     conn.grid(row=3,columnspan= 2,pady=10)
-    
+
+#Add student
+def add():
+    def addtodb():
+        currentdate = time.strftime('%d-%M-%Y')
+        currenttime = time.strftime('%H:%M:%S')
+        if identry.get()=='' or nameentry.get()=='' or mobileentry.get()=='' or mailentry.get()==''or genderentry.get()=='' or Addressentry.get()=='' or dobentry.get()=='' :
+            messagebox.showerror('Empty','No Feild should be Empty',parent=addwindow)
+        else:
+            query = 'insert into student values(%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+            mycursor.execute(query,(identry.get(),nameentry.get(),mobileentry.get(),mailentry.get(),Addressentry.get(),genderentry.get(),dobentry.get(),currentdate,currenttime))
+        conn.commit()
+        result = messagebox.askyesno('Confirm','Data added Succesfully Do You want to clear form',parent=addwindow)
+        if result:
+            identry.delete(0,END)
+            nameentry.delete(0,END)
+            mobileentry.delete(0,END)
+            mailentry.delete(0,END)
+            Addressentry.delete(0,END)
+            genderentry.delete(0,END)
+            dobentry.delete(0,END)
+        else:
+            pass
+        query = 'select *from student'
+        mycursor.execute(query)
+        Student_Table.delete(*Student_Table.get_children())
+        fetcheddata = mycursor.fetchall()
+        for data in fetcheddata:
+            listdata = list(data)
+            Student_Table.insert('',END,values=listdata)
+    addwindow = Toplevel()
+    addwindow.grab_set()
+    addwindow.resizable(0,0)
+    addwindow.title('Add Student')
+
+    #ID
+    idlable = Label(addwindow,text='Id',font=('times new roman',20,'bold'))
+    idlable.grid(row=0,column=0,sticky=W)
+    identry = Entry(addwindow,font=('times new roman',20,'bold'),width=25,bd=2)
+    identry.grid(row=0,column=1,padx=40,pady=20)
+
+    #Name
+    namelable = Label(addwindow,text='Name',font=('times new roman',20,'bold'))
+    namelable.grid(row=1,column=0,sticky=W)
+    nameentry = Entry(addwindow,font=('times new roman',20,'bold'),width=25,bd=2)
+    nameentry.grid(row=1,column=1,padx=40,pady=20)
+
+    #Mobile
+    mobilelable = Label(addwindow,text='Phone',font=('times new roman',20,'bold'))
+    mobilelable.grid(row=2,column=0,sticky=W)
+    mobileentry = Entry(addwindow,font=('times new roman',20,'bold'),width=25,bd=2)
+    mobileentry.grid(row=2,column=1,padx=40,pady=20)
+
+    #Mail
+    maillable = Label(addwindow,text='E-Mail',font=('times new roman',20,'bold'))
+    maillable.grid(row=3,column=0,sticky=W)
+    mailentry = Entry(addwindow,font=('times new roman',20,'bold'),width=25,bd=2)
+    mailentry.grid(row=3,column=1,padx=40,pady=20)
+
+    #Address
+    Addresslable = Label(addwindow,text='Address',font=('times new roman',20,'bold'))
+    Addresslable.grid(row=4,column=0,sticky=W)
+    Addressentry = Entry(addwindow,font=('times new roman',20,'bold'),width=25,bd=2)
+    Addressentry.grid(row=4,column=1,padx=40,pady=20)
+
+    #Gender
+    Genderlable = Label(addwindow,text='Gender',font=('times new roman',20,'bold'))
+    Genderlable.grid(row=5,column=0,sticky=W)
+    genderentry = Entry(addwindow,font=('times new roman',20,'bold'),width=25,bd=2)
+    genderentry.grid(row=5,column=1,padx=40,pady=20)
+
+    #DOB
+    doblable = Label(addwindow,text='D.O.B',font=('times new roman',20,'bold'))
+    doblable.grid(row=6,column=0,sticky=W)
+    dobentry = Entry(addwindow,font=('times new roman',20,'bold'),width=25,bd=2)
+    dobentry.grid(row=6,column=1,padx=40,pady=20)
+
+    #Add Student button
+    studebutton = ttk.Button(addwindow,text='Add Student',width=20,cursor='hand2',command=addtodb)
+    studebutton.grid(row=7, columnspan=2, pady=20)
+
+#Search  Student
+def search():
+    def search_student():
+        query= 'select *from student where Id=%s or Name=%s or Mobile=%s or Mail=%s or Gender=%s or DOB=%s'
+        mycursor.execute(query,(identry.get(),nameentry.get(),mobileentry.get(),mailentry.get(),genderentry.get(),dobentry.get()))
+        Student_Table.delete(*Student_Table.get_children())
+        fetcheddata = mycursor.fetchall()
+        for data in fetcheddata:
+            Student_Table.insert('',END, values=data)
+    addwindow = Toplevel()
+    addwindow.title('Search Student')
+    #ID
+    idlable = Label(addwindow,text='Id',font=('times new roman',20,'bold'))
+    idlable.grid(row=0,column=0,sticky=W)
+    identry = Entry(addwindow,font=('times new roman',20,'bold'),width=25,bd=2)
+    identry.grid(row=0,column=1,padx=40,pady=20)
+
+    #Name
+    namelable = Label(addwindow,text='Name',font=('times new roman',20,'bold'))
+    namelable.grid(row=1,column=0,sticky=W)
+    nameentry = Entry(addwindow,font=('times new roman',20,'bold'),width=25,bd=2)
+    nameentry.grid(row=1,column=1,padx=40,pady=20)
+
+    #Mobile
+    mobilelable = Label(addwindow,text='Phone',font=('times new roman',20,'bold'))
+    mobilelable.grid(row=2,column=0,sticky=W)
+    mobileentry = Entry(addwindow,font=('times new roman',20,'bold'),width=25,bd=2)
+    mobileentry.grid(row=2,column=1,padx=40,pady=20)
+
+    #Mail
+    maillable = Label(addwindow,text='E-Mail',font=('times new roman',20,'bold'))
+    maillable.grid(row=3,column=0,sticky=W)
+    mailentry = Entry(addwindow,font=('times new roman',20,'bold'),width=25,bd=2)
+    mailentry.grid(row=3,column=1,padx=40,pady=20)
+
+    #Gender
+    Genderlable = Label(addwindow,text='Gender',font=('times new roman',20,'bold'))
+    Genderlable.grid(row=5,column=0,sticky=W)
+    genderentry = Entry(addwindow,font=('times new roman',20,'bold'),width=25,bd=2)
+    genderentry.grid(row=5,column=1,padx=40,pady=20)
+
+    #DOB
+    doblable = Label(addwindow,text='D.O.B',font=('times new roman',20,'bold'))
+    doblable.grid(row=6,column=0,sticky=W)
+    dobentry = Entry(addwindow,font=('times new roman',20,'bold'),width=25,bd=2)
+    dobentry.grid(row=6,column=1,padx=40,pady=20)
+
+    #Search Student button
+    studebutton = ttk.Button(addwindow,text='Search Student',width=20,cursor='hand2',command=search_student)
+    studebutton.grid(row=7, columnspan=2, pady=20)
+
+#Delete Student
+def del_student():
+    indexing = Student_Table.focus()
+    print(indexing)
+    content =Student_Table.item(indexing)
+    content_id=content['values'][0]
+    query = 'delete from student where id=%s'
+    mycursor.execute(query,content_id)
+    conn.commit()
+    messagebox.showinfo('Success',f'id {content_id} Deleted successfully')
+    query = 'select *from student'
+    mycursor.execute(query)
+    Student_Table.delete(*Student_Table.get_children())
+    fetchdata = mycursor.fetchall()
+    for data in fetchdata:
+        Student_Table.insert('',END,values=data)
+
+# Show Student
+def show():
+    query = 'select *from student'
+    mycursor.execute(query)
+    Student_Table.delete(*Student_Table.get_children())
+    fetchdata = mycursor.fetchall()
+    for data in fetchdata:
+        Student_Table.insert('',END,values=data)
+
 
 #GUI part
 root = ttkthemes.ThemedTk()
@@ -133,11 +293,11 @@ logolable = Label(Leftframe,image=logo)
 logolable.grid(row=0,column=0)
 
 #Buttons
-AddButton = ttk.Button(Leftframe,text='Add Student',width=20,cursor='hand2',state=DISABLED)
-SerButton = ttk.Button(Leftframe,text='Search Student',width=20,cursor='hand2',state=DISABLED)
-delButton = ttk.Button(Leftframe,text='Delete Student',width=20,cursor='hand2',state=DISABLED)
+AddButton = ttk.Button(Leftframe,text='Add Student',width=20,cursor='hand2',state=DISABLED,command=add)
+SerButton = ttk.Button(Leftframe,text='Search Student',width=20,cursor='hand2',state=DISABLED,command=search)
+delButton = ttk.Button(Leftframe,text='Delete Student',width=20,cursor='hand2',state=DISABLED,command=del_student)
 upButton = ttk.Button(Leftframe,text='Update Student',width=20,cursor='hand2',state=DISABLED)
-shButton = ttk.Button(Leftframe,text='Show Student',width=20,cursor='hand2',state=DISABLED)
+shButton = ttk.Button(Leftframe,text='Show Student',width=20,cursor='hand2',state=DISABLED,command=show)
 ExButton = ttk.Button(Leftframe,text='Export Data',width=20,cursor='hand2',state=DISABLED)
 ExiButton = ttk.Button(Leftframe,text='Eixt',width=20,cursor='hand2')
 
