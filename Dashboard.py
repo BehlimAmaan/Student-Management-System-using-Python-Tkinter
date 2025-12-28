@@ -4,14 +4,16 @@ from PIL import Image, ImageTk
 import time
 import ttkthemes
 from tkinter import ttk
+from tkinter import messagebox
+import pymysql
 
 def clock():
     date = time.strftime('%d-%M-%Y')
     Ctime = time.strftime('%H:%M:%S')
     datelable.config(text=f'Date:{date}') 
     timelable.config(text=f'Time:{Ctime}')
-    datelable.after(1000,clock)
-    timelable.after(1000,clock)
+    # datelable.after(1000,clock)
+    timelable.after(300,clock)
 
 count = 0
 text = ''
@@ -25,6 +27,73 @@ def slider():
     count+=1
     sliderlable.config(text=text)
     sliderlable.after(200,slider)
+
+#Database connection 
+def db_connect():
+    def connect():
+        try:
+            conn = pymysql.connect(host=hostentry.get(), user=userentry.get(), password=passentry.get())
+            mycursor=conn.cursor()
+            messagebox.showinfo('Succes','Database connection is successful',parent=dbroot)
+        except:
+            messagebox.showerror('Error','Invalid Credentials',parent=dbroot)
+        dbroot.destroy()
+        try:
+            query = 'Create Database student_management_system'
+            mycursor.execute(query)
+            query = 'use student_management_system'
+            mycursor.execute(query)
+            query = '''
+            CREATE TABLE IF NOT EXISTS student (
+                Id INT NOT NULL PRIMARY KEY,
+                Name VARCHAR(30) NOT NULL,
+                Mobile VARCHAR(10),
+                Address VARCHAR(100),
+                Gender VARCHAR(10),
+                DOB VARCHAR(20) NOT NULL,
+                Date VARCHAR(20),
+                Time VARCHAR(20)
+            )
+            '''
+            mycursor.execute(query)
+        except:
+            query ='use student_management_system'
+            mycursor.execute(query)
+        AddButton.config(state=NORMAL)
+        SerButton.config(state=NORMAL)
+        delButton.config(state=NORMAL)
+        upButton.config(state=NORMAL)
+        shButton.config(state=NORMAL)
+        ExButton.config(state=NORMAL)
+        ExiButton.config(state=NORMAL)
+
+    dbroot=Toplevel()
+    dbroot.grab_set()
+    dbroot.geometry('500x300+730+230')
+    dbroot.title('Database Connection')
+    dbroot.resizable(0,0)
+    # Tags 
+    hostlable = Label(dbroot,text='  Host Name:',font=('arial',20,'bold'))
+    userlable = Label(dbroot,text='  User Name:',font=('arial',20,'bold'))
+    passwordlable = Label(dbroot,text='  Password:',font=('arial',20,'bold'))
+
+    hostlable.grid(row=0,column=0,pady=20)
+    userlable.grid(row=1,column=0,pady=20)
+    passwordlable.grid(row=2,column=0,pady=20)
+
+    # Entry feild
+    hostentry = Entry(dbroot,font=('times new roman',20,'bold'),width=15,bd=2)
+    userentry = Entry(dbroot,font=('times new roman',20,'bold'),width=15,bd=2)
+    passentry = Entry(dbroot,font=('times new roman',20,'bold'),width=15,bd=2)
+
+    hostentry.grid(row=0,column=1,padx=40,pady=20)
+    userentry.grid(row=1,column=1,padx=40,pady=20)
+    passentry.grid(row=2,column=1,padx=40,pady=20)
+
+    #Connect Button
+    conn = ttk.Button(dbroot,text='Connect',command=connect,width=20,cursor='hand2')
+    conn.grid(row=3,columnspan= 2,pady=10)
+    
 
 #GUI part
 root = ttkthemes.ThemedTk()
@@ -51,7 +120,7 @@ sliderlable.grid(row=0,column=3)
 slider()
 
 # DB Button
-dbbutton = ttk.Button(text='Connect to Database',cursor='hand2')
+dbbutton = ttk.Button(text='Connect to Database',command=db_connect,cursor='hand2')
 dbbutton.place(x=1050,y=0)
 
 #Left Frame
@@ -64,12 +133,12 @@ logolable = Label(Leftframe,image=logo)
 logolable.grid(row=0,column=0)
 
 #Buttons
-AddButton = ttk.Button(Leftframe,text='Add Student',width=20,cursor='hand2')
-SerButton = ttk.Button(Leftframe,text='Search Student',width=20,cursor='hand2')
-delButton = ttk.Button(Leftframe,text='Delete Student',width=20,cursor='hand2')
-upButton = ttk.Button(Leftframe,text='Update Student',width=20,cursor='hand2')
-shButton = ttk.Button(Leftframe,text='Show Student',width=20,cursor='hand2')
-ExButton = ttk.Button(Leftframe,text='Export Data',width=20,cursor='hand2')
+AddButton = ttk.Button(Leftframe,text='Add Student',width=20,cursor='hand2',state=DISABLED)
+SerButton = ttk.Button(Leftframe,text='Search Student',width=20,cursor='hand2',state=DISABLED)
+delButton = ttk.Button(Leftframe,text='Delete Student',width=20,cursor='hand2',state=DISABLED)
+upButton = ttk.Button(Leftframe,text='Update Student',width=20,cursor='hand2',state=DISABLED)
+shButton = ttk.Button(Leftframe,text='Show Student',width=20,cursor='hand2',state=DISABLED)
+ExButton = ttk.Button(Leftframe,text='Export Data',width=20,cursor='hand2',state=DISABLED)
 ExiButton = ttk.Button(Leftframe,text='Eixt',width=20,cursor='hand2')
 
 #Button placing
